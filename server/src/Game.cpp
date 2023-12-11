@@ -84,6 +84,13 @@ void Game::rotateCurrentPiece() {
     }
 }
 
+void Game::moveCurrentPieceDown() {
+    if (board.canMoveCurrentPieceDown()) {
+        auto* current = board.getCurrentPiece();
+        current->setY(current->getY() + 1);
+    }
+}
+
 void Game::swapPieces() {
     currentPiece = std::move(nextPiece);
     nextPiece = Tetris::core::TetrominoFactory::UniformPieceRandomizer();

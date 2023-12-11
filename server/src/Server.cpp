@@ -99,7 +99,7 @@ private:
         }
     }
 
-    void Server::handleClient(int clientSocket)
+    void handleClient(int clientSocket)
     {
         Tetris::Game game;
         game.startNewGame();
@@ -140,13 +140,13 @@ private:
         close(clientSocket);
     }
 
-    void Server::handleIDResponse(int clientSocket, const MessageHeader &header)
+    void handleIDResponse(int clientSocket, const MessageHeader &header)
     {
         // Process client ID (you can store it, log it, etc.)
         std::cout << "Received ID response from client " << header.senderID << std::endl;
     }
 
-    void Server::handleGameAction(int clientSocket, const MessageHeader &header, Tetris::Game &game)
+    void handleGameAction(int clientSocket, const MessageHeader &header, Tetris::Game &game)
     {
         // Process game action from client
         char buffer[1024];
@@ -167,7 +167,7 @@ private:
         }
     }
 
-    void Server::sendGameState(int clientSocket, const Tetris::Game &game)
+    void sendGameState(int clientSocket, const Tetris::Game &game)
     {
         std::string gameState = game.getCurrentState(); // Assuming such a method exists
         MessageHeader header;
@@ -180,7 +180,7 @@ private:
         send(clientSocket, gameState.c_str(), gameState.size(), 0);
     }
 
-    void Server::sendGameOver(int clientSocket)
+    void sendGameOver(int clientSocket)
     {
         std::string message = "Game Over";
         MessageHeader header;
