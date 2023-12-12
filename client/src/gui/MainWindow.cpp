@@ -1,5 +1,5 @@
 #include "../../include/gui/MainWindow.hpp"
-#include "../ClientNetworkHandler.hpp"
+#include "../../include/ClientNetworkHandler.hpp"
 #include <../../common/include/TetrominoFactory.hpp>
 #include <QScreen>
 #include <QThread>

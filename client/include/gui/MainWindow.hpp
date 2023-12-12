@@ -19,9 +19,9 @@
 
 #include "../../../common/include/Tetromino.hpp"
 #include "../../../common/include/TetrominoFactory.hpp"
-#include "../../src/RendererGame.hpp"
-#include "../../src/RendererPreview.hpp"
-#include "../../src/ClientNetworkHandler.hpp"
+#include "../../include/RendererGame.hpp"
+#include "../../include/RendererPreview.hpp"
+#include "../../include/ClientNetworkHandler.hpp"
 
 namespace Tetris::gui{
 

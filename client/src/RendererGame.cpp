@@ -1,4 +1,4 @@
-#include "RendererGame.hpp"
+#include "../include/RendererGame.hpp"
 #include <iostream>
 
 Tetris::gui::RendererGame::RendererGame() :

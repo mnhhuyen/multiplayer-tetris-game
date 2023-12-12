@@ -439,15 +439,15 @@ tetris_client_autogen/timestamp: \
 	/home/nmh/Qt/6.6.0/gcc_64/lib/cmake/Qt6WidgetsTools/Qt6WidgetsToolsVersionlessTargets.cmake \
 	/home/nmh/network-programming/tetris/tetris/build/client/tetris_client_autogen/moc_predefs.h \
 	/home/nmh/network-programming/tetris/tetris/client/CMakeLists.txt \
+	/home/nmh/network-programming/tetris/tetris/client/include/ClientNetworkHandler.hpp \
+	/home/nmh/network-programming/tetris/tetris/client/include/RendererFacilities.hpp \
+	/home/nmh/network-programming/tetris/tetris/client/include/RendererGame.hpp \
+	/home/nmh/network-programming/tetris/tetris/client/include/RendererPreview.hpp \
 	/home/nmh/network-programming/tetris/tetris/client/include/gui/MainWindow.hpp \
 	/home/nmh/network-programming/tetris/tetris/client/src/ClientNetworkHandler.cpp \
-	/home/nmh/network-programming/tetris/tetris/client/src/ClientNetworkHandler.hpp \
 	/home/nmh/network-programming/tetris/tetris/client/src/RendererFacilities.cpp \
-	/home/nmh/network-programming/tetris/tetris/client/src/RendererFacilities.hpp \
 	/home/nmh/network-programming/tetris/tetris/client/src/RendererGame.cpp \
-	/home/nmh/network-programming/tetris/tetris/client/src/RendererGame.hpp \
 	/home/nmh/network-programming/tetris/tetris/client/src/RendererPreview.cpp \
-	/home/nmh/network-programming/tetris/tetris/client/src/RendererPreview.hpp \
 	/home/nmh/network-programming/tetris/tetris/client/src/gui/MainWindow.cpp \
 	/home/nmh/network-programming/tetris/tetris/client/src/main.cpp \
 	/home/nmh/network-programming/tetris/tetris/common/include/Board.hpp \

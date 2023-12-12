@@ -1,4 +1,4 @@
-#include "RendererPreview.hpp"
+#include "../include/RendererPreview.hpp"
 
 Tetris::gui::RendererPreview::RendererPreview(Tetris::core::Tetromino* tetromino) :
     m_tetromino(tetromino)

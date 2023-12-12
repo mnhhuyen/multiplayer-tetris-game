@@ -1,4 +1,4 @@
-#include "RendererFacilities.hpp"
+#include "../include/RendererFacilities.hpp"
 
 void Tetris::gui::RendererFacilities::drawBlock(QPainter& painter, const int x, const int y, const int blockSize, const QColor& colour){
     painter.fillRect(x, y, blockSize, blockSize, QBrush(colour));
