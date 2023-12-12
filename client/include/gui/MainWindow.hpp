@@ -64,13 +64,15 @@ namespace Tetris::gui{
         // /**
         //  * @brief pauseGame pause the timer that update the game drawing area.
         //  */
-        void pauseGame();
+        // void pauseGame();
 
         /**
          * @brief changePiecePandomizer dynamically change the piece generator.
          */
-        void changePiecePandomizer();
+        void changePieceRandomizer();
 
+        void sendStartCommandToServer();
+        void sendPauseCommandToServer();
         void connectToServer();
 
     private:

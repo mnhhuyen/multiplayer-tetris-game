@@ -133,10 +133,10 @@ namespace Tetris::gui
     void MainWindow::connectWidgets()
     {
         QObject::connect(m_comboRandomizer, SIGNAL(currentTextChanged(QString)), this, SLOT(changePiecePandomizer()));
-        QObject::connect(m_buttonStart, SIGNAL(clicked()), this, SLOT(initGameArea()));
-        QObject::connect(m_buttonPause, SIGNAL(clicked()), this, SLOT(pauseGame()));
+        // QObject::connect(m_buttonPause, SIGNAL(clicked()), this, SLOT(pauseGame()));
         QObject::connect(m_buttonAbout, SIGNAL(clicked()), m_messageBox, SLOT(exec()));
-        QObject::connect(m_timer.get(), SIGNAL(timeout()), this, SLOT(updateGameArea()));
+        QObject::connect(m_buttonStart, SIGNAL(clicked()), this, SLOT(sendStartCommandToServer()));
+        QObject::connect(m_buttonPause, SIGNAL(clicked()), this, SLOT(sendPauseCommandToServer()));
     }
 
     // void Tetris::gui::MainWindow::initGameArea(){
@@ -278,31 +278,41 @@ namespace Tetris::gui
         networkHandler->sendUserInput(command);
     }
 
-    void MainWindow::pauseGame()
+    void MainWindow::sendStartCommandToServer()
     {
-        m_timer->stop();
-        m_buttonStart->setText("resume");
+        // Send start command to server
+        networkHandler->sendUserInput("start");
     }
 
-    void MainWindow::changePiecePandomizer()
+    void MainWindow::sendPauseCommandToServer()
     {
-        if (m_comboRandomizer->currentText().contains("uniform"))
-        {
-            m_pieceRandomizer = Tetris::core::TetrominoFactory::UniformPieceRandomizer;
-        }
-        else if (m_comboRandomizer->currentText().contains("7-bag"))
-        {
-            m_pieceRandomizer = Tetris::core::TetrominoFactory::BagPieceRandomizer;
-        }
-        else
-        {
-            throw std::runtime_error("Unknown piece randomizer");
-        }
+        // Send pause command to server
+        networkHandler->sendUserInput("pause");
+    }
+
+    // void MainWindow::changePiecePandomizer()
+    // {
+    //     if (m_comboRandomizer->currentText().contains("uniform"))
+    //     {
+    //         m_pieceRandomizer = Tetris::core::TetrominoFactory::UniformPieceRandomizer;
+    //     }
+    //     else if (m_comboRandomizer->currentText().contains("7-bag"))
+    //     {
+    //         m_pieceRandomizer = Tetris::core::TetrominoFactory::BagPieceRandomizer;
+    //     }
+    //     else
+    //     {
+    //         throw std::runtime_error("Unknown piece randomizer");
+    //     }
+    // }
+    void MainWindow::changePieceRandomizer() {
+        // Handle change in piece randomizer selection
+        std::string command = m_comboRandomizer->currentText().contains("uniform") ? "uniform_randomizer" : "7_bag_randomizer";
+        networkHandler->sendUserInput(command);
     }
 
     void MainWindow::connectToServer()
     {
-        // Assuming networkHandler is already created and started
         MessageHeader header;
         std::string payload = networkHandler->receiveMessage(header);
 
