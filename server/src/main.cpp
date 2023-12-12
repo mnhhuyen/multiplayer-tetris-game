@@ -1,9 +1,20 @@
-// server/src/main.cpp
-#include "Server.h"
+#include <iostream>
+#include "../include/Server.h"
 
 int main() {
-    int port = 5000;  // Port number for the server
-    Server server(port);
-    server.start();
+    int port = 5000; 
+    Server server(port);  
+    server.start();      
+
+    std::string input;
+    while (true) {
+        std::cin >> input;
+        if (input == "exit") {
+            break;
+        }
+    }
+
+    server.stop();
     return 0;
 }
+

@@ -11,12 +11,15 @@ public:
     Server(int port);
     ~Server();
     void start();
+    void stop();
 
 private:
     int server_socket;
     int server_port;
+    int server_fd;
     std::vector<std::thread> client_threads;
-
+    std::atomic<bool> running;
+    std::thread acceptThread;
     void acceptClients();
     void handleClient(int client_socket);
     void handleIDResponse(int clientSocket, const MessageHeader &header);
