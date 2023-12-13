@@ -13,7 +13,7 @@ namespace Tetris::gui
         initWidgets();
         connectWidgets();
 
-        networkHandler = std::make_unique<ClientNetworkHandler>("server_ip", 5000);
+        networkHandler = std::make_unique<ClientNetworkHandler>("127.0.0.1", 8080);
         networkHandler->start(); // Start the network thread
     }
 
@@ -132,7 +132,7 @@ namespace Tetris::gui
 
     void MainWindow::connectWidgets()
     {
-        QObject::connect(m_comboRandomizer, SIGNAL(currentTextChanged(QString)), this, SLOT(changePiecePandomizer()));
+        QObject::connect(m_comboRandomizer, SIGNAL(currentTextChanged(QString)), this, SLOT(changePieceRandomizer()));
         // QObject::connect(m_buttonPause, SIGNAL(clicked()), this, SLOT(pauseGame()));
         QObject::connect(m_buttonAbout, SIGNAL(clicked()), m_messageBox, SLOT(exec()));
         QObject::connect(m_buttonStart, SIGNAL(clicked()), this, SLOT(sendStartCommandToServer()));
@@ -165,6 +165,31 @@ namespace Tetris::gui
     //        m_timer->stop();
     //        m_timer->start(m_timeUpdate);
     //    }
+    // }
+
+    // void MainWindow::updateGameArea(const GameState &gameState)
+    // {
+    //     // Update game rendering based on the received game state
+    //     m_renderGame->setBoard(gameState.board);
+    //     m_renderPreview->setTetromino(gameState.nextPiece);
+
+    //     // Update UI elements
+    //     m_labelLines->setText(QString("Lines\n") + QString::number(gameState.linesCleared));
+    //     m_labelScore->setText(QString("Score\n") + QString::number(gameState.score));
+    //     m_labelLevel->setText(QString("Level\n") + QString::number(gameState.level));
+
+    //     if (gameState.completedLinesRange.first && gameState.completedLinesRange.second)
+    //     {
+    //         blinkLines(gameState.completedLinesRange.first, gameState.completedLinesRange.second);
+    //     }
+
+    //     if (gameState.isGameOver)
+    //     {
+    //         m_renderGame->setGameOver(true);
+    //     }
+
+    //     m_renderGame->update();
+    //     m_renderPreview->update();
     // }
 
     // void Tetris::gui::MainWindow::updateGameArea(){
@@ -202,38 +227,39 @@ namespace Tetris::gui
     //     m_renderGame->update();
     // }
 
-    // void Tetris::gui::MainWindow::blinkLines(const int lineStart, const int lineStop){
-    //     QPainterPath blinkArea;
-    //     blinkArea.lineTo(m_renderGame->getMarginLeft(), m_renderGame->getMarginTop() + m_renderGame->getCellSize() * lineStart);
-    //     blinkArea.lineTo(m_renderGame->getMarginLeft() + m_renderGame->getCellSize() * Tetris::core::Board::m_width,
-    //                      m_renderGame->getMarginTop() + m_renderGame->getCellSize() * lineStart);
-    //     blinkArea.lineTo(m_renderGame->getMarginLeft() + m_renderGame->getCellSize() * Tetris::core::Board::m_width,
-    //                      m_renderGame->getMarginTop() + m_renderGame->getCellSize() * lineStop);
-    //     blinkArea.lineTo(m_renderGame->getMarginLeft(), m_renderGame->getMarginTop() + m_renderGame->getCellSize() * lineStop);
-    //     blinkArea.lineTo(m_renderGame->getMarginLeft(), m_renderGame->getMarginTop() + m_renderGame->getCellSize() * lineStart);
+    void Tetris::gui::MainWindow::blinkLines(const int lineStart, const int lineStop)
+    {
+        QPainterPath blinkArea;
+        blinkArea.lineTo(m_renderGame->getMarginLeft(), m_renderGame->getMarginTop() + m_renderGame->getCellSize() * lineStart);
+        blinkArea.lineTo(m_renderGame->getMarginLeft() + m_renderGame->getCellSize() * Tetris::core::Board::m_width,
+                         m_renderGame->getMarginTop() + m_renderGame->getCellSize() * lineStart);
+        blinkArea.lineTo(m_renderGame->getMarginLeft() + m_renderGame->getCellSize() * Tetris::core::Board::m_width,
+                         m_renderGame->getMarginTop() + m_renderGame->getCellSize() * lineStop);
+        blinkArea.lineTo(m_renderGame->getMarginLeft(), m_renderGame->getMarginTop() + m_renderGame->getCellSize() * lineStop);
+        blinkArea.lineTo(m_renderGame->getMarginLeft(), m_renderGame->getMarginTop() + m_renderGame->getCellSize() * lineStart);
 
-    //     m_renderGame->setExtraShapes({blinkArea});
-    //     m_renderGame->setExtraColor(Qt::black); // first blink
-    //     m_renderGame->repaint();
-    //     QThread::msleep(50);
+        m_renderGame->setExtraShapes({blinkArea});
+        m_renderGame->setExtraColor(Qt::black); // first blink
+        m_renderGame->repaint();
+        QThread::msleep(50);
 
-    //     m_renderGame->setExtraColor(QColor(0,0,0,0));
-    //     m_renderGame->repaint();
-    //     QThread::msleep(50);
+        m_renderGame->setExtraColor(QColor(0, 0, 0, 0));
+        m_renderGame->repaint();
+        QThread::msleep(50);
 
-    //     m_renderGame->setExtraColor(Qt::black); // second blink
-    //     m_renderGame->repaint();
-    //     QThread::msleep(50);
+        m_renderGame->setExtraColor(Qt::black); // second blink
+        m_renderGame->repaint();
+        QThread::msleep(50);
 
-    //     m_renderGame->setExtraColor(QColor(0,0,0,0));
-    //     m_renderGame->repaint();
+        m_renderGame->setExtraColor(QColor(0, 0, 0, 0));
+        m_renderGame->repaint();
 
-    //     QThread::msleep(50);
-    //     m_renderGame->setExtraColor(Qt::black); // first blink
-    //     m_renderGame->repaint();
-    //     m_renderGame->setExtraShapes({});
-    //     m_renderGame->setExtraColor(QColor(0,0,0,0));
-    // }
+        QThread::msleep(50);
+        m_renderGame->setExtraColor(Qt::black); // first blink
+        m_renderGame->repaint();
+        m_renderGame->setExtraShapes({});
+        m_renderGame->setExtraColor(QColor(0, 0, 0, 0));
+    }
 
     // void Tetris::gui::MainWindow::addScore(const int completedLines){
     //     switch(completedLines) {
@@ -273,7 +299,6 @@ namespace Tetris::gui
         case Qt::Key_Down:
             command = "move_down";
             break;
-            // ... add other relevant cases
         }
         networkHandler->sendUserInput(command);
     }
@@ -305,7 +330,8 @@ namespace Tetris::gui
     //         throw std::runtime_error("Unknown piece randomizer");
     //     }
     // }
-    void MainWindow::changePieceRandomizer() {
+    void MainWindow::changePieceRandomizer()
+    {
         // Handle change in piece randomizer selection
         std::string command = m_comboRandomizer->currentText().contains("uniform") ? "uniform_randomizer" : "7_bag_randomizer";
         networkHandler->sendUserInput(command);
