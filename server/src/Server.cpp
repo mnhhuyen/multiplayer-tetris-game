@@ -65,6 +65,14 @@ void Server::stop()
     {
         acceptThread.join();
     }
+
+    std::lock_guard<std::mutex> guard(client_thread_mutex);
+    for (auto& thread : client_threads) {
+        if (thread.joinable()) {
+            thread.join();
+        }
+    }
+
     if (server_fd != -1)
     {
         close(server_fd);
@@ -75,28 +83,31 @@ int server_fd;
 std::atomic<bool> running;
 std::thread acceptThread;
 
-void Server::acceptClients()
-{
+void Server::acceptClients() {
     struct sockaddr_in address;
     int addrlen = sizeof(address);
     int new_socket;
 
-    while (running)
-    {
+    while (running) {
         std::cout << "Waiting for new connection..." << std::endl;
-        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
-        {
+        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0) {
             perror("accept");
             continue;
         }
 
-        // Handle client in a separate thread
-        std::thread clientThread(&Server::handleClient, this, new_socket);
-        clientThread.detach(); // You may want to keep track of these threads or clients
+        std::lock_guard<std::mutex> guard(client_id_mutex);
+        unsigned long long client_id = next_client_id++;
+
+        client_thread_mutex.lock();
+        client_threads.emplace_back([this, new_socket, client_id]() {
+            this->handleClient(new_socket, client_id);
+        });
+        client_thread_mutex.unlock();
     }
 }
 
-void Server::handleClient(int clientSocket)
+
+void Server::handleClient(int clientSocket, unsigned long long client_id)
 {
     Tetris::Game game;
     game.startNewGame();
@@ -114,10 +125,10 @@ void Server::handleClient(int clientSocket)
         switch (header.messageType)
         {
         case MessageType::ID_RESPONSE:
-            handleIDResponse(clientSocket, header);
+            handleIDResponse(clientSocket, header, client_id);
             break;
         case MessageType::GAME_ACTION:
-            handleGameAction(clientSocket, header, game);
+            handleGameAction(clientSocket, header, game, client_id);
             break;
         }
 
@@ -136,13 +147,13 @@ void Server::handleClient(int clientSocket)
     close(clientSocket);
 }
 
-void Server::handleIDResponse(int clientSocket, const MessageHeader &header)
+void Server::handleIDResponse(int clientSocket, const MessageHeader &header, unsigned long long client_id)
 {
     // Process client ID (you can store it, log it, etc.)
     std::cout << "Received ID response from client " << header.senderID << std::endl;
 }
 
-void Server::handleGameAction(int clientSocket, const MessageHeader &header, Tetris::Game &game)
+void Server::handleGameAction(int clientSocket, const MessageHeader &header, Tetris::Game &game, unsigned long long client_id)
 {
     // Process game action from client
     char buffer[1024];
