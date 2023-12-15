@@ -1,11 +1,11 @@
-#include "gui/MainWindow.hpp"  // This assumes your CMakeLists.txt has included the directories properly
+#include "gui/MainWindow.hpp"
 
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    Tetris::gui::MainWindow window;  // Update this according to the actual namespace where MainWindow is defined
+    Tetris::gui::MainWindow window;
     window.show();
     return app.exec();
 }

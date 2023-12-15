@@ -23,7 +23,8 @@
 #include "../../include/RendererPreview.hpp"
 #include "../../include/ClientNetworkHandler.hpp"
 
-namespace Tetris::gui{
+namespace Tetris::gui
+{
 
     /**
      * \mainpage
@@ -33,11 +34,11 @@ namespace Tetris::gui{
      *
      * RendererGame is the class dealing with the game drawing.
      */
-    class MainWindow : public QMainWindow{
+    class MainWindow : public QMainWindow
+    {
         Q_OBJECT
 
     public:
-
         /**
          * @brief MainWindow's constructor
          * @param parent is by default nullptr because there's no parent.
@@ -59,7 +60,7 @@ namespace Tetris::gui{
         // /**
         //  * @brief updateGameArea update game area depending on the game state.
         //  */
-        // void updateGameArea();
+        void updateGameArea();
 
         // /**
         //  * @brief pauseGame pause the timer that update the game drawing area.
@@ -76,7 +77,6 @@ namespace Tetris::gui{
         void connectToServer();
 
     private:
-
         /*
          * Initialize window' properties (size, position...).
          * */
@@ -87,32 +87,34 @@ namespace Tetris::gui{
          * */
         void initWidgets();
 
-        // void addScore(const int);
+        void addScore(const int);
 
         /**
         //  * @brief connectWidgets gathers every connection for widgets and their signals.
          */
         void connectWidgets();
-
+        void receiveGameStateFromServer();
+        void processGameState(const std::string &gameState);
+        void startGameStateUpdateLoop();
         void blinkLines(const int lineStart, const int lineStop);
 
-        QPushButton* m_buttonStart;
-        QPushButton* m_buttonPause;
-        QPushButton* m_buttonAbout;
-        QComboBox* m_comboRandomizer;
-        QLabel* m_labelRandomizer;
-        QLabel* m_labelNext;
-        QLabel* m_labelLines;
-        QLabel* m_labelLevel;
-        QLabel* m_labelScore;
-        QMessageBox* m_messageBox;
-        Tetris::gui::RendererGame* m_renderGame;
-        Tetris::gui::RendererPreview* m_renderPreview;
+        QPushButton *m_buttonStart;
+        QPushButton *m_buttonPause;
+        QPushButton *m_buttonAbout;
+        QComboBox *m_comboRandomizer;
+        QLabel *m_labelRandomizer;
+        QLabel *m_labelNext;
+        QLabel *m_labelLines;
+        QLabel *m_labelLevel;
+        QLabel *m_labelScore;
+        QMessageBox *m_messageBox;
+        Tetris::gui::RendererGame *m_renderGame;
+        Tetris::gui::RendererPreview *m_renderPreview;
 
-        QHBoxLayout* m_layoutMain;
-        QHBoxLayout* m_layoutRandomizer;
-        QVBoxLayout* m_layoutInformations;
-        QHBoxLayout* m_layoutButtons;
+        QHBoxLayout *m_layoutMain;
+        QHBoxLayout *m_layoutRandomizer;
+        QVBoxLayout *m_layoutInformations;
+        QHBoxLayout *m_layoutButtons;
 
         Tetris::core::Board m_board;
 
@@ -121,7 +123,7 @@ namespace Tetris::gui{
         std::function<std::unique_ptr<Tetris::core::Tetromino>()> m_pieceRandomizer;
 
         std::unique_ptr<ClientNetworkHandler> networkHandler;
-        
+
         /**
          * @brief m_lines is the number of completed lines.
          */
@@ -163,7 +165,6 @@ namespace Tetris::gui{
         const int m_comboBoxWidth = 150;
 
     protected:
-        void keyReleaseEvent(QKeyEvent* e) override;
+        void keyReleaseEvent(QKeyEvent *e) override;
     };
 }
-

@@ -8,16 +8,21 @@
 #include <atomic>
 #include <netinet/in.h>
 
-class ClientNetworkHandler {
+class ClientNetworkHandler
+{
+    int clientID;
+
 public:
-    ClientNetworkHandler(const std::string& serverIP, int serverPort);
+    ClientNetworkHandler(const std::string &serverIP, int serverPort);
     ~ClientNetworkHandler();
 
     void start();
     void stop();
-    void sendUserInput(const std::string& input);
-    void sendMessage(const MessageHeader& header, const std::string& payload);
-    std::string receiveMessage(MessageHeader& header);
+    void setClientID(int id);
+    void sendUserInput(const std::string &input);
+    void sendMessage(const MessageHeader &header, const std::string &payload);
+    std::string receiveMessage(MessageHeader &header);
+    std::string receiveGameState();
 
 private:
     std::thread networkThread;
@@ -28,7 +33,7 @@ private:
 
     void run();
     void setupSocket();
-    std::string receiveGameState();
+    // std::string receiveGameState();
 };
 
 #endif // CLIENTNETWORKHANDLER_HPP

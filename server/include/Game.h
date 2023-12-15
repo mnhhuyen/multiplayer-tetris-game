@@ -1,4 +1,3 @@
-// server/include/Game.h
 #pragma once
 #include <vector>
 #include <memory>
@@ -22,6 +21,8 @@ namespace Tetris
         void moveCurrentPieceRight();
         bool isGameOver() const;
         std::string getCurrentState() const;
+        std::pair<int, int> checkForCompletedLines();
+        void updateScoreAndLevel(int lines);
 
     private:
         Board board;            // Represents the Tetris board

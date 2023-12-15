@@ -35,8 +35,8 @@ void Game::updateGame() {
         if (completedRange.first && completedRange.second) {
             int lines = completedRange.second - completedRange.first;
             linesCleared += lines;
-            updateScore(lines);
-            checkLevelUp();
+            updateScore(lines);  // Update the score based on lines cleared
+            checkLevelUp();      // Check and update level if needed
             board.eraseLines(completedRange);
         }
 
@@ -49,6 +49,7 @@ void Game::updateGame() {
     }
 }
 
+// Combine the score and level update logic into single functions
 void Game::updateScore(int linesCleared) {
     static const int scores[] = {0, 40, 100, 300, 1200};
     if (linesCleared >= 1 && linesCleared <= 4) {
@@ -57,7 +58,7 @@ void Game::updateScore(int linesCleared) {
 }
 
 void Game::checkLevelUp() {
-    if (linesCleared / 10 > level) {
+    if (this->linesCleared / 10 > level) {
         level++;
         // Adjust game speed or other level-related factors here
     }
@@ -106,4 +107,31 @@ std::string Game::getCurrentState() const {
     // Implement serialization logic for game state
     return "";
 }
+
+std::pair<int, int> Game::checkForCompletedLines() {
+    return board.hasCompletedLines();
+}
+
+// void Game::updateScoreAndLevel(const std::pair<int, int>& completedRange) {
+//     if (completedRange.first != -1 && completedRange.second != -1) {
+//         int linesCleared = completedRange.second - completedRange.first + 1;
+//         linesCleared += linesCleared;
+
+//         // Update score based on number of lines cleared and current level
+//         static const int scores[] = {0, 40, 100, 300, 1200};
+//         if (linesCleared >= 1 && linesCleared <= 4) {
+//             score += scores[linesCleared] * (level + 1);
+//         }
+
+//         // Check for level up
+//         if (linesCleared / 10 > level) {
+//             level++;
+//             // Optionally adjust game speed or other level-related factors here
+//         }
+
+//         // Erase the completed lines from the board
+//         board.eraseLines(completedRange);
+//     }
+// }
+
 }

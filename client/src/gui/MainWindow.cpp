@@ -1,6 +1,7 @@
 #include "../../include/gui/MainWindow.hpp"
 #include "../../include/ClientNetworkHandler.hpp"
 #include <../../common/include/TetrominoFactory.hpp>
+#include <../../common/include/GameState.hpp>
 #include <QScreen>
 #include <QThread>
 
@@ -63,16 +64,6 @@ namespace Tetris::gui
         m_buttonPause = new QPushButton("pause", this);
         m_buttonAbout = new QPushButton("about", this);
 
-        /* Initialize message box in about button. */
-        m_messageBox = new QMessageBox(this);
-        m_messageBox->setText(QString("This application is written in C++14 with Qt6 and OpenGL libraries.\n"
-                                      "Have a look at the <a href=\"https://gitlab.com/boreec/tetris/\">source code</a>.\n"
-                                      " You can also have a look at my personal <a href=\"https://boreec.fr/projects/\">website</a>"
-                                      " where I have more projects."));
-        m_messageBox->setTextFormat(Qt::RichText);
-        m_messageBox->setTextInteractionFlags(Qt::TextBrowserInteraction);
-        m_messageBox->setIcon(QMessageBox::Information);
-
         /* Initialize rendering widgets. */
         m_renderGame = new Tetris::gui::RendererGame();
         m_renderPreview = new Tetris::gui::RendererPreview();
@@ -134,9 +125,11 @@ namespace Tetris::gui
     {
         QObject::connect(m_comboRandomizer, SIGNAL(currentTextChanged(QString)), this, SLOT(changePieceRandomizer()));
         // QObject::connect(m_buttonPause, SIGNAL(clicked()), this, SLOT(pauseGame()));
-        QObject::connect(m_buttonAbout, SIGNAL(clicked()), m_messageBox, SLOT(exec()));
+        // QObject::connect(m_buttonAbout, SIGNAL(clicked()), m_messageBox, SLOT(exec()));
         QObject::connect(m_buttonStart, SIGNAL(clicked()), this, SLOT(sendStartCommandToServer()));
         QObject::connect(m_buttonPause, SIGNAL(clicked()), this, SLOT(sendPauseCommandToServer()));
+        // QObject::connect(m_timer.get(), SIGNAL(timeout()), this, SLOT(receiveGameStateFromServer()));
+        QObject::connect(m_timer.get(), SIGNAL(timeout()), this, SLOT(updateGameArea()));
     }
 
     // void Tetris::gui::MainWindow::initGameArea(){
@@ -192,40 +185,85 @@ namespace Tetris::gui
     //     m_renderPreview->update();
     // }
 
-    // void Tetris::gui::MainWindow::updateGameArea(){
-    //     if(!m_board.canMoveCurrentPieceDown()){
-    //         m_board.dropCurrentPiece();
-    //         m_board.swapPieces(m_pieceRandomizer());
-    //         m_renderPreview->setTetromino(m_board.getNextPiece());
+    void Tetris::gui::MainWindow::updateGameArea()
+    {
+        if (!m_board.canMoveCurrentPieceDown())
+        {
+            m_board.dropCurrentPiece();
+            m_board.swapPieces(m_pieceRandomizer());
+            m_renderPreview->setTetromino(m_board.getNextPiece());
 
-    //         if(auto completedRange = m_board.hasCompletedLines(); completedRange.first && completedRange.second){
-    //             m_lines += completedRange.second - completedRange.first;
-    //             addScore(completedRange.second - completedRange.first);
-    //             m_labelLines->setText(QString("Lines\n") + QString::number(m_lines));
-    //             m_labelScore->setText(QString("Score\n") + QString::number(m_score));
-    //             if(m_lines / 10 > (m_lines - (completedRange.second - completedRange.first)) / 10){
-    //               m_level++;
-    //               m_labelLevel->setText(QString("Level\n") + QString::number(m_level));
-    //               m_timer->stop();
-    //               m_timer->start(m_timeUpdate * std::pow(1 - m_timeDecreaseRate, m_level));
-    //             }
+            if (auto completedRange = m_board.hasCompletedLines(); completedRange.first && completedRange.second)
+            {
+                m_lines += completedRange.second - completedRange.first;
+                addScore(completedRange.second - completedRange.first);
+                m_labelLines->setText(QString("Lines\n") + QString::number(m_lines));
+                m_labelScore->setText(QString("Score\n") + QString::number(m_score));
+                if (m_lines / 10 > (m_lines - (completedRange.second - completedRange.first)) / 10)
+                {
+                    m_level++;
+                    m_labelLevel->setText(QString("Level\n") + QString::number(m_level));
+                    m_timer->stop();
+                    m_timer->start(m_timeUpdate * std::pow(1 - m_timeDecreaseRate, m_level));
+                }
 
-    //             m_timer->stop();
-    //             blinkLines(completedRange.first, completedRange.second);
-    //             m_timer->start();
-    //             m_board.eraseLines(completedRange);
+                m_timer->stop();
+                blinkLines(completedRange.first, completedRange.second);
+                m_timer->start();
+                m_board.eraseLines(completedRange);
+            }
+            else if (m_board.isGameOver())
+            {
+                m_renderGame->setGameOver(true);
+                m_renderGame->update();
+                m_timer->stop();
+            }
+            m_renderPreview->update();
+        }
+        else
+        {
+            m_board.getCurrentPiece()->setY(m_board.getCurrentPiece()->getY() + 1);
+        }
+        m_renderGame->update();
+    }
 
-    //         }else if(m_board.isGameOver()){
-    //             m_renderGame->setGameOver(true);
-    //             m_renderGame->update();
-    //             m_timer->stop();
-    //         }
-    //         m_renderPreview->update();
-    //     }else{
-    //         m_board.getCurrentPiece()->setY(m_board.getCurrentPiece()->getY() + 1);
+    // void Tetris::gui::MainWindow::receiveGameStateFromServer()
+    // {
+    //     std::string gameState = networkHandler->receiveGameState();
+    //     if (!gameState.empty())
+    //     {
+    //         processGameState(gameState);
     //     }
-    //     m_renderGame->update();
     // }
+
+    // void MainWindow::processGameState(const std::string &gameState)
+    // {
+    //     GameState state = deserializeGameState(gameState);
+
+    //     // Update the UI based on the new game state
+    //     m_labelLines->setText(QString("Lines\n") + QString::number(state.linesCleared));
+    //     m_labelScore->setText(QString("Score\n") + QString::number(state.score));
+    //     m_labelLevel->setText(QString("Level\n") + QString::number(state.level));
+
+    //     // Update the game board rendering
+    //     m_renderGame->setBoard(state.board);
+    //     m_renderGame->update();
+
+    //     if (receivedGameOver)
+    //     {
+    //         handleGameOver();
+    //     }
+
+    //     if (completedLinesExist)
+    //     {
+    //         blinkLines;
+    //     }
+    // }
+
+    void MainWindow::startGameStateUpdateLoop()
+    {
+        m_timer->start(100);
+    }
 
     void Tetris::gui::MainWindow::blinkLines(const int lineStart, const int lineStop)
     {
@@ -261,58 +299,141 @@ namespace Tetris::gui
         m_renderGame->setExtraColor(QColor(0, 0, 0, 0));
     }
 
-    // void Tetris::gui::MainWindow::addScore(const int completedLines){
-    //     switch(completedLines) {
-    //         case 1:
-    //             m_score += 40 * (m_level  + 1);
-    //             break;
-    //         case 2:
-    //             m_score += 100 * (m_level + 1);
-    //             break;
-    //         case 3:
-    //             m_score += 300 * (m_level + 1);
-    //             break;
-    //         case 4:
-    //             m_score += 1200 * (m_level + 1);
-    //             break;
-    //         default:
-    //             throw std::runtime_error("Can't complete more than 4 lines at once.");
+    void Tetris::gui::MainWindow::addScore(const int completedLines)
+    {
+        switch (completedLines)
+        {
+        case 1:
+            m_score += 40 * (m_level + 1);
+            break;
+        case 2:
+            m_score += 100 * (m_level + 1);
+            break;
+        case 3:
+            m_score += 300 * (m_level + 1);
+            break;
+        case 4:
+            m_score += 1200 * (m_level + 1);
+            break;
+        default:
+            throw std::runtime_error("Can't complete more than 4 lines at once.");
+        }
+    }
+
+    // void MainWindow::keyReleaseEvent(QKeyEvent *e)
+    // {
+    //     // Change piece coordinates after checking if it can moves in
+    //     // the pressed direction and rendering the move.
+    //     std::string command;
+    //     switch (e->key())
+    //     {
+    //     case Qt::Key_Left:
+    //         command = "move_left";
+    //         break;
+    //     case Qt::Key_Right:
+    //         command = "move_right";
+    //         break;
+    //     case Qt::Key_Up:
+    //         command = "rotate";
+    //         break;
+    //     case Qt::Key_Down:
+    //         command = "move_down";
+    //         break;
     //     }
+    //     networkHandler->sendUserInput(command);
     // }
 
     void MainWindow::keyReleaseEvent(QKeyEvent *e)
     {
         // Change piece coordinates after checking if it can moves in
         // the pressed direction and rendering the move.
-        std::string command;
-        switch (e->key())
+        if (e->key() == Qt::Key_Left)
         {
-        case Qt::Key_Left:
-            command = "move_left";
-            break;
-        case Qt::Key_Right:
-            command = "move_right";
-            break;
-        case Qt::Key_Up:
-            command = "rotate";
-            break;
-        case Qt::Key_Down:
-            command = "move_down";
-            break;
+            if (m_board.canMoveCurrentPieceLeft())
+            {
+                m_renderGame->update();
+                m_board.getCurrentPiece()->setX(m_board.getCurrentPiece()->getX() - 1);
+            }
         }
-        networkHandler->sendUserInput(command);
+        else if (e->key() == Qt::Key_Right)
+        {
+            if (m_board.canMoveCurrentPieceRight())
+            {
+                m_renderGame->update();
+                m_board.getCurrentPiece()->setX(m_board.getCurrentPiece()->getX() + 1);
+            }
+        }
+        else if (e->key() == Qt::Key_Up)
+        {
+            if (m_board.canRotateCurrentPiece())
+            {
+                m_renderGame->update();
+                m_board.getCurrentPiece()->setOrientation((m_board.getCurrentPiece()->getOrientation() + 1) % 4);
+            }
+        }
+        else if (e->key() == Qt::Key_Down)
+        {
+            if (m_board.canMoveCurrentPieceDown())
+            {
+                m_renderGame->update();
+                m_board.getCurrentPiece()->setY(m_board.getCurrentPiece()->getY() + 1);
+            }
+        }
     }
+
+    // void MainWindow::sendStartCommandToServer()
+    // {
+    //     m_buttonStart->setText("restart");
+    //     std::string startCommand = "START";
+    //     networkHandler->sendUserInput(startCommand);
+
+    //     // startGameStateUpdateLoop();
+    // }
 
     void MainWindow::sendStartCommandToServer()
     {
-        // Send start command to server
-        networkHandler->sendUserInput("start");
+        if (m_buttonStart->text() == "resume")
+        {
+            m_timer->start();
+            m_buttonStart->setText("restart");
+        }
+        else
+        {
+            m_board.clear();
+            m_board.setCurrentPiece(m_pieceRandomizer());
+            m_board.setNextPiece(m_pieceRandomizer());
+            m_renderGame->setBoard(&m_board);
+            m_renderGame->setGameOver(false);
+
+            m_renderPreview->setTetromino(m_board.getNextPiece());
+            m_renderPreview->update();
+            m_buttonStart->setText(QString("restart"));
+
+            m_lines = 0;
+            m_level = 0;
+            m_score = 0;
+
+            m_labelLines->setText(QString("Lines\n0"));
+            m_labelLevel->setText(QString("Level\n0"));
+            m_labelScore->setText(QString("Score\n0"));
+
+            m_timer->stop();
+            m_timer->start(m_timeUpdate);
+        }
     }
+
+    // void MainWindow::sendPauseCommandToServer()
+    // {
+    //     // Send pause command to server
+    //     m_buttonStart->setText("resume");
+    //     std::string startCommand = "PAUSE";
+    //     networkHandler->sendUserInput(startCommand);
+    // }
 
     void MainWindow::sendPauseCommandToServer()
     {
-        // Send pause command to server
-        networkHandler->sendUserInput("pause");
+        m_timer->stop();
+        m_buttonStart->setText("resume");
     }
 
     // void MainWindow::changePiecePandomizer()
@@ -339,17 +460,39 @@ namespace Tetris::gui
 
     void MainWindow::connectToServer()
     {
-        MessageHeader header;
-        std::string payload = networkHandler->receiveMessage(header);
-
-        if (header.messageType == MessageType::ID_REQUEST)
+        try
         {
-            // Respond with client ID
-            MessageHeader responseHeader{MessageType::ID_RESPONSE, /* messageLength */ 0, /* clientID */ 1, /* serverID */ 0};
-            std::string responsePayload = "ID=(client_id)";
-            responseHeader.messageLength = responsePayload.size();
+            networkHandler->start(); // Start the network thread and attempt to connect
 
-            networkHandler->sendMessage(responseHeader, responsePayload);
+            MessageHeader header;
+            std::string serverResponse = networkHandler->receiveMessage(header);
+
+            if (header.messageType == MessageType::ID_RESPONSE)
+            {
+                std::string idPrefix = "ID=";
+                size_t idPos = serverResponse.find(idPrefix);
+
+                if (idPos != std::string::npos)
+                {
+                    std::string idStr = serverResponse.substr(idPos + idPrefix.length());
+                    int receivedClientID = std::stoi(idStr);
+
+                    networkHandler->setClientID(receivedClientID);
+                    std::cout << "Client ID received and set: " << receivedClientID << std::endl;
+                }
+                else
+                {
+                    std::cerr << "Invalid ID response from server." << std::endl;
+                }
+            }
+            else
+            {
+                std::cerr << "Unexpected message type received: " << static_cast<int>(header.messageType) << std::endl;
+            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "Exception in connectToServer: " << e.what() << std::endl;
         }
     }
 }
