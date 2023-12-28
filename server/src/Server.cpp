@@ -104,7 +104,7 @@ void Server::acceptClients()
         }
 
         unsigned long long client_id = next_client_id++;
-        printf("got client with id %lf\n", client_id);
+        printf("got client with id %llu\n", client_id);
         std::lock_guard<std::mutex> guard(client_thread_mutex);
         client_threads.emplace_back([this, new_socket, client_id]()
                                     { this->handleClient(new_socket, client_id); });
