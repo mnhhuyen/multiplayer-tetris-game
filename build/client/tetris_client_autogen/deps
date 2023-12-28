@@ -451,6 +451,7 @@ tetris_client_autogen/timestamp: \
 	/home/nmh/network-programming/tetris/tetris/client/src/gui/MainWindow.cpp \
 	/home/nmh/network-programming/tetris/tetris/client/src/main.cpp \
 	/home/nmh/network-programming/tetris/tetris/common/include/Board.hpp \
+	/home/nmh/network-programming/tetris/tetris/common/include/GameState.hpp \
 	/home/nmh/network-programming/tetris/tetris/common/include/MessageProtocol.hpp \
 	/home/nmh/network-programming/tetris/tetris/common/include/Tetromino.hpp \
 	/home/nmh/network-programming/tetris/tetris/common/include/TetrominoFactory.hpp \

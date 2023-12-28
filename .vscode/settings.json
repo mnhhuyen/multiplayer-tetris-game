@@ -55,7 +55,8 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "qscreen": "cpp"
+        "qscreen": "cpp",
+        "qcolor": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

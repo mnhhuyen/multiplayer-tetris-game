@@ -18,7 +18,7 @@ private:
     std::string receiveMessage(int clientSocket, MessageHeader &header);
     void handleIDResponse(int clientSocket, const MessageHeader &header, unsigned long long client_id);
     void handleGameAction(int clientSocket, const MessageHeader &header, Tetris::Game &game, unsigned long long client_id);
-    void sendGameState(int clientSocket, const Tetris::Game &game);
+    void sendGameState(int clientSocket, Tetris::Game &game);
     void sendGameOver(int clientSocket);
     void updateGameForClient(unsigned long long client_id);
     void sendMessageToClient(unsigned long long client_id, MessageType messageType, const std::string& payload);

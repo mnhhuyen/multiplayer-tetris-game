@@ -20,7 +20,7 @@ namespace Tetris
         void moveCurrentPieceLeft();
         void moveCurrentPieceRight();
         bool isGameOver() const;
-        std::string getCurrentState() const;
+        std::string getCurrentState();
         std::pair<int, int> checkForCompletedLines();
         void updateScoreAndLevel(int lines);
 

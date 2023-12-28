@@ -24,10 +24,10 @@ void Tetris::core::Board::eraseLines(const std::pair<int, int>& range){
     }
 }
 
-
-const auto& Tetris::core::Board::getBoard() const{
+const std::array<std::array<char, Tetris::core::Board::m_width>, Tetris::core::Board::m_height>& Tetris::core::Board::getBoard() const {
     return m_board;
 }
+
 
 constexpr bool Tetris::core::Board::isWithinBoardWidth(const int x){
     return x >= 0 && x < m_width;
@@ -161,6 +161,18 @@ Tetris::core::Tetromino* Tetris::core::Board::getNextPiece(){
     return m_nextPiece.get();
 }
 
+// void Tetris::core::Board::setFromGameState(const GameState& gameState) {
+//     // Update current and next Tetrominoes
+//     setCurrentPiece(gameState.getCurrentPiece() ? std::make_unique<Tetromino>(*gameState.getCurrentPiece()) : nullptr);
+//     setNextPiece(gameState.getNextPiece() ? std::make_unique<Tetromino>(*gameState.getNextPiece()) : nullptr);
+
+//     // Additional game state updates (if required)
+//     // For example, updating score, level, etc., if these are managed by Board
+//     // score = gameState.getScore();
+//     // level = gameState.getLevel();
+//     // linesCleared = gameState.getLinesCleared();
+// }
+
 void Tetris::core::Board::swapPieces(std::unique_ptr<Tetris::core::Tetromino> next){
     m_currentPiece = std::move(m_nextPiece);
     m_nextPiece = std::move(next);
@@ -175,6 +187,22 @@ char Tetris::core::Board::getCell(const int x, const int y) const{
             c = m_board[y][x];
     }
     return c;
+}
+
+void Tetris::core::Board::initializeFromData(const std::vector<std::vector<char>>& data) {
+    if (data.size() != m_height) {
+        throw std::runtime_error("Invalid board height.");
+    }
+
+    for (size_t i = 0; i < m_height; ++i) {
+        if (data[i].size() != m_width) {
+            throw std::runtime_error("Invalid board width at row " + std::to_string(i));
+        }
+
+        for (size_t j = 0; j < m_width; ++j) {
+            m_board[i][j] = data[i][j];
+        }
+    }
 }
 
 QColor Tetris::core::Board::getCharColor(const char c){

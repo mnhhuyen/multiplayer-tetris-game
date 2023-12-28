@@ -10,6 +10,7 @@ add_library(tetris_common STATIC
     src/Tetromino_Z.cpp
     src/Board.cpp
     src/TetrominoFactory.cpp
+    src/GameState.cpp
 )
 
 target_include_directories(tetris_common PUBLIC include)

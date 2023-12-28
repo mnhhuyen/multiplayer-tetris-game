@@ -16,12 +16,13 @@
 #include <QScreen>
 #include <QSizePolicy>
 #include <QTimer>
-
+#include "../../../common/include/GameState.hpp"
 #include "../../../common/include/Tetromino.hpp"
 #include "../../../common/include/TetrominoFactory.hpp"
 #include "../../include/RendererGame.hpp"
 #include "../../include/RendererPreview.hpp"
 #include "../../include/ClientNetworkHandler.hpp"
+#include "GameState.hpp"
 
 namespace Tetris::gui
 {
@@ -60,6 +61,7 @@ namespace Tetris::gui
         // /**
         //  * @brief updateGameArea update game area depending on the game state.
         //  */
+        // void onGameStateReceived(const std::string& gameState);
         void updateGameArea();
 
         // /**
@@ -97,7 +99,9 @@ namespace Tetris::gui
         void processGameState(const std::string &gameState);
         void startGameStateUpdateLoop();
         void blinkLines(const int lineStart, const int lineStop);
-
+        Tetris::core::GameState deserializeGameState(const std::string &serializedState);
+        int extractValueFromLine(const std::string &line);
+        void handleGameOver();
         QPushButton *m_buttonStart;
         QPushButton *m_buttonPause;
         QPushButton *m_buttonAbout;
@@ -117,7 +121,7 @@ namespace Tetris::gui
         QHBoxLayout *m_layoutButtons;
 
         Tetris::core::Board m_board;
-
+        Tetris::core::GameState gameState;
         std::unique_ptr<QTimer> m_timer;
 
         std::function<std::unique_ptr<Tetris::core::Tetromino>()> m_pieceRandomizer;

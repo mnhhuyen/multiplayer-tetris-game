@@ -7,9 +7,11 @@
 #include <thread>
 #include <atomic>
 #include <netinet/in.h>
+#include <QObject>
 
-class ClientNetworkHandler
+class ClientNetworkHandler : public QObject
 {
+    Q_OBJECT
     int clientID;
 
 public:
@@ -21,7 +23,7 @@ public:
     void setClientID(int id);
     void sendUserInput(const std::string &input);
     void sendMessage(const MessageHeader &header, const std::string &payload);
-    std::string receiveMessage(MessageHeader &header);
+    std::pair<MessageHeader, std::string>receiveMessage();
     std::string receiveGameState();
 
 private:
@@ -33,6 +35,9 @@ private:
 
     void run();
     void setupSocket();
+
+signals:
+    void gameStateReceived(const std::string& gameState);
     // std::string receiveGameState();
 };
 

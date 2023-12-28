@@ -1,9 +1,15 @@
 #include "../../include/gui/MainWindow.hpp"
 #include "../../include/ClientNetworkHandler.hpp"
-#include <../../common/include/TetrominoFactory.hpp>
-#include <../../common/include/GameState.hpp>
+#include "../../../common/include/TetrominoFactory.hpp"
+#include "../../../common/include/Tetromino.hpp"
+#include "../../../common/include/GameState.hpp"
 #include <QScreen>
 #include <QThread>
+#include <string>
+#include <iostream>
+#include <sstream>
+
+using namespace std;
 
 namespace Tetris::gui
 {
@@ -15,6 +21,7 @@ namespace Tetris::gui
         connectWidgets();
 
         networkHandler = std::make_unique<ClientNetworkHandler>("127.0.0.1", 8080);
+        connect(networkHandler.get(), &ClientNetworkHandler::gameStateReceived, this, &MainWindow::processGameState);
         networkHandler->start(); // Start the network thread
     }
 
@@ -160,31 +167,6 @@ namespace Tetris::gui
     //    }
     // }
 
-    // void MainWindow::updateGameArea(const GameState &gameState)
-    // {
-    //     // Update game rendering based on the received game state
-    //     m_renderGame->setBoard(gameState.board);
-    //     m_renderPreview->setTetromino(gameState.nextPiece);
-
-    //     // Update UI elements
-    //     m_labelLines->setText(QString("Lines\n") + QString::number(gameState.linesCleared));
-    //     m_labelScore->setText(QString("Score\n") + QString::number(gameState.score));
-    //     m_labelLevel->setText(QString("Level\n") + QString::number(gameState.level));
-
-    //     if (gameState.completedLinesRange.first && gameState.completedLinesRange.second)
-    //     {
-    //         blinkLines(gameState.completedLinesRange.first, gameState.completedLinesRange.second);
-    //     }
-
-    //     if (gameState.isGameOver)
-    //     {
-    //         m_renderGame->setGameOver(true);
-    //     }
-
-    //     m_renderGame->update();
-    //     m_renderPreview->update();
-    // }
-
     void Tetris::gui::MainWindow::updateGameArea()
     {
         if (!m_board.canMoveCurrentPieceDown())
@@ -236,29 +218,109 @@ namespace Tetris::gui
     //     }
     // }
 
-    // void MainWindow::processGameState(const std::string &gameState)
-    // {
-    //     GameState state = deserializeGameState(gameState);
+    void Tetris::gui::MainWindow::processGameState(const std::string &gameState)
+    {
+        std::cout << "Received game state: " << gameState << std::endl;
+        Tetris::core::GameState state = deserializeGameState(gameState);
+        // const auto *boardPtr = state.getBoard();
+        // if (boardPtr)
+        // {
+        //     std::cout << "Board object is valid. Current piece: " << (boardPtr->getCurrentPiece() ? "Yes" : "No") << std::endl;
+        // }
+        // else
+        // {
+        //     std::cerr << "Board object is nullptr!" << std::endl;
+        // }
+        // Update UI elements based on server game state
+        printf("deserialize game state successfully\n");
+        m_labelLines->setText(QString("Lines\n") + QString::number(state.getLinesCleared()));
+        m_labelScore->setText(QString("Score\n") + QString::number(state.getScore()));
+        m_labelLevel->setText(QString("Level\n") + QString::number(state.getLevel()));
+        printf("set text label\n");
+        // Update the game board and preview piece rendering
+        m_renderGame->setBoard(const_cast<Tetris::core::Board *>(state.getBoard()));
+        m_renderPreview->setTetromino(state.getNextPiece());
+        printf("check1\n");
+        m_renderGame->update();
+        m_renderPreview->update();
 
-    //     // Update the UI based on the new game state
-    //     m_labelLines->setText(QString("Lines\n") + QString::number(state.linesCleared));
-    //     m_labelScore->setText(QString("Score\n") + QString::number(state.score));
-    //     m_labelLevel->setText(QString("Level\n") + QString::number(state.level));
+        if (state.getIsGameOver())
+        {
+            handleGameOver();
+        }
+        printf("check2\n");
+    }
 
-    //     // Update the game board rendering
-    //     m_renderGame->setBoard(state.board);
-    //     m_renderGame->update();
+    Tetris::core::GameState Tetris::gui::MainWindow::deserializeGameState(const std::string &serializedState)
+    {
+        printf("start to deserialize\n");
+        Tetris::core::GameState gameState;
+        std::istringstream stream(serializedState);
+        std::string line;
+        std::vector<std::vector<char>> boardData;
 
-    //     if (receivedGameOver)
-    //     {
-    //         handleGameOver();
-    //     }
+        // Deserialize board
+        printf("check1\n");
+        for (int i = 0; i < Tetris::core::Board::m_height; ++i)
+        {
+            printf("check2\n");
+            std::getline(stream, line);
+            std::cout << line << std::endl;
+            std::vector<char> row(line.begin(), line.end());
+            for (size_t w = 0; w < row.size(); ++w)
+                std::cout << row[w] << ' ';
+            printf("\n");
+            boardData.push_back(row);
+        }
 
-    //     if (completedLinesExist)
-    //     {
-    //         blinkLines;
-    //     }
-    // }
+        // Assuming Board has a method to initialize from a vector of vector of chars
+        printf("start to set the board\n");
+        auto board = std::make_unique<Tetris::core::Board>();
+        printf("start to initialize board from data\n");
+        board->initializeFromData(boardData); // Implement this method in Board class
+        printf("set the board\n");
+        gameState.setBoard(std::move(board));
+        printf("check1\n");
+        // Deserialize current and next piece
+        std::string currentPieceData, nextPieceData;
+        printf("check2\n");
+        std::getline(stream, currentPieceData);
+        std::cout << currentPieceData << endl;
+        std::getline(stream, nextPieceData);
+        std::cout << nextPieceData << endl;
+        gameState.setCurrentPiece(Tetris::core::Tetromino::deserialize(currentPieceData));
+        gameState.setNextPiece(Tetris::core::Tetromino::deserialize(nextPieceData));
+
+        // Deserialize score, level, and lines cleared
+        printf("check3\n");
+        std::string temp;
+        int score, level, linesCleared;
+        stream >> temp >> score;
+        gameState.setScore(score);
+        stream >> temp >> level;
+        gameState.setLevel(level);
+        stream >> temp >> linesCleared;
+        gameState.setLinesCleared(linesCleared);
+
+        printf("setting game state DONE!\n");
+
+        return gameState;
+    }
+
+    // Helper function to extract integer value from a string like "Score: 10"
+    int MainWindow::extractValueFromLine(const std::string &line)
+    {
+        std::istringstream iss(line);
+        std::string token;
+        int value;
+        iss >> token >> value;
+        return value;
+    }
+
+    void MainWindow::handleGameOver()
+    {
+        QMessageBox::information(this, "Game Over", "Game Over! Your final score is: " + QString::number(m_score));
+    }
 
     void MainWindow::startGameStateUpdateLoop()
     {
@@ -381,57 +443,35 @@ namespace Tetris::gui
         }
     }
 
-    // void MainWindow::sendStartCommandToServer()
-    // {
-    //     m_buttonStart->setText("restart");
-    //     std::string startCommand = "START";
-    //     networkHandler->sendUserInput(startCommand);
-
-    //     // startGameStateUpdateLoop();
-    // }
-
     void MainWindow::sendStartCommandToServer()
     {
+        std::cout << "entered start button" << std::endl;
         if (m_buttonStart->text() == "resume")
         {
+            // If the game is in a paused state, resume it
             m_timer->start();
             m_buttonStart->setText("restart");
         }
         else
         {
-            m_board.clear();
-            m_board.setCurrentPiece(m_pieceRandomizer());
-            m_board.setNextPiece(m_pieceRandomizer());
-            m_renderGame->setBoard(&m_board);
-            m_renderGame->setGameOver(false);
-
-            m_renderPreview->setTetromino(m_board.getNextPiece());
-            m_renderPreview->update();
+            // Send a start command to the server
+            std::string startCommand = "START";
+            std::cout << "start to send to network with command: " << startCommand << std::endl;
+            networkHandler->sendUserInput(startCommand);
             m_buttonStart->setText(QString("restart"));
-
-            m_lines = 0;
-            m_level = 0;
-            m_score = 0;
-
-            m_labelLines->setText(QString("Lines\n0"));
-            m_labelLevel->setText(QString("Level\n0"));
-            m_labelScore->setText(QString("Score\n0"));
-
             m_timer->stop();
             m_timer->start(m_timeUpdate);
         }
-    }
 
-    // void MainWindow::sendPauseCommandToServer()
-    // {
-    //     // Send pause command to server
-    //     m_buttonStart->setText("resume");
-    //     std::string startCommand = "PAUSE";
-    //     networkHandler->sendUserInput(startCommand);
-    // }
+        // Reset local UI elements
+        m_labelLines->setText(QString("Lines\n0"));
+        m_labelLevel->setText(QString("Level\n0"));
+        m_labelScore->setText(QString("Score\n0"));
+    }
 
     void MainWindow::sendPauseCommandToServer()
     {
+        networkHandler->sendUserInput("PAUSE");
         m_timer->stop();
         m_buttonStart->setText("resume");
     }
@@ -464,30 +504,41 @@ namespace Tetris::gui
         {
             networkHandler->start(); // Start the network thread and attempt to connect
 
+            // Wait for the server to send a response
             MessageHeader header;
-            std::string serverResponse = networkHandler->receiveMessage(header);
+            std::string serverResponse;
+            bool idReceived = false;
 
-            if (header.messageType == MessageType::ID_RESPONSE)
+            while (!idReceived)
             {
-                std::string idPrefix = "ID=";
-                size_t idPos = serverResponse.find(idPrefix);
+                std::tie(header, serverResponse) = networkHandler->receiveMessage();
 
-                if (idPos != std::string::npos)
+                if (header.messageType == MessageType::ID_RESPONSE)
                 {
-                    std::string idStr = serverResponse.substr(idPos + idPrefix.length());
-                    int receivedClientID = std::stoi(idStr);
+                    std::string idPrefix = "ID=";
+                    size_t idPos = serverResponse.find(idPrefix);
 
-                    networkHandler->setClientID(receivedClientID);
-                    std::cout << "Client ID received and set: " << receivedClientID << std::endl;
+                    if (idPos != std::string::npos)
+                    {
+                        std::string idStr = serverResponse.substr(idPos + idPrefix.length());
+                        int receivedClientID = std::stoi(idStr);
+
+                        networkHandler->setClientID(receivedClientID);
+                        std::cout << "Client ID received and set: " << receivedClientID << std::endl;
+                        idReceived = true; // Break out of the loop once the ID is received
+                    }
+                    else
+                    {
+                        std::cerr << "Invalid ID response from server." << std::endl;
+                    }
                 }
                 else
                 {
-                    std::cerr << "Invalid ID response from server." << std::endl;
+                    std::cerr << "Unexpected message type received: " << static_cast<int>(header.messageType) << std::endl;
                 }
-            }
-            else
-            {
-                std::cerr << "Unexpected message type received: " << static_cast<int>(header.messageType) << std::endl;
+
+                // Add a small delay to avoid busy waiting
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
             }
         }
         catch (const std::exception &e)

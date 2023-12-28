@@ -1,23 +1,35 @@
 #pragma once
 
 #include "../../common/include/Tetromino.hpp"
+#include "../../common/include/GameState.hpp"
 #include "../../common/include/TetrominoFactory.hpp"
 
 #include <cassert>
 #include <QColor>
 
-namespace Tetris::core{
+namespace Tetris::core
+{
 
     /**
      * @brief Board represents the whole Tetris game area.
      */
-    class Board{
+    class Board
+    {
     public:
+        constexpr static int m_height = 22;
+
+        /**
+         * @brief m_width is the width of the board.
+         */
+        constexpr static int m_width = 10;
 
         /**
          * @brief Board's constructor creates an empty Board.
          */
         Board();
+
+        // Board(const Board&) = delete;
+        // Board& operator=(const Board&) = delete;
 
         /**
          * @brief clear the whole board with empty cells.
@@ -30,12 +42,12 @@ namespace Tetris::core{
          * "gravity effect".
          * @param range is the range of rows to clear.
          */
-        void eraseLines(const std::pair<int, int>& range);
+        void eraseLines(const std::pair<int, int> &range);
 
         /**
          * @brief getBoard returns a reference to the Board.
          */
-        const auto& getBoard() const;
+        const std::array<std::array<char, m_width>, m_height> &getBoard() const;
 
         /**
          * @brief dropCurrentPiece will drop the current piece onto the Board.
@@ -104,17 +116,21 @@ namespace Tetris::core{
          * @brief swapPieces will replace currentPiece's content with nextPiece's content.
          * @param next is the new Tetromino for nextPiece.
          */
+
+        // void setFromGameState(const GameState& gameState);
         void swapPieces(std::unique_ptr<Tetris::core::Tetromino> next);
 
         /**
          * @brief getCurrentPiece returns a pointer to the currentPiece (but still owns it).
          */
-        Tetromino* getCurrentPiece();
+
+        void initializeFromData(const std::vector<std::vector<char>> &data);
+        Tetromino *getCurrentPiece();
 
         /**
          * @brief getNextPiece returns a pointer to the nextPiece (but still owns it).
          */
-        Tetromino* getNextPiece();
+        Tetromino *getNextPiece();
 
         /**
          * @brief getCell returns the content of a board cell as a char.
@@ -129,18 +145,7 @@ namespace Tetris::core{
          */
         static QColor getCharColor(const char c);
 
-        /**
-         * @brief m_height is the height of the board.
-         */
-        constexpr static int m_height = 22;
-
-        /**
-         * @brief m_width is the width of the board.
-         */
-        constexpr static int m_width = 10;
-
     private:
-
         /**
          * @brief m_board is the data structure representing the Tetris board.
          */

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <memory>
 
 #define EMPTY_CELL '.'
 
@@ -63,6 +64,12 @@ namespace Tetris::core{
          */
         void setOrientation(const int rotation);
 
+        /**
+         * @brief Serialize the Tetromino object to a string
+         * @return A string representing the serialized state of the Tetromino
+         */
+        std::string serialize() const;
+        static std::unique_ptr<Tetromino> deserialize(const std::string& data);
     protected:
 
         /**
